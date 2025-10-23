@@ -2396,44 +2396,33 @@ async def handle(request):
 # ==============================
 #  Telegram Bot Section
 # ==============================
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ربات آماده است!")
 
-async def start(update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ ربات فعاله!")
+app_bot = ApplicationBuilder().token(TOKEN).build()
+app_bot.add_handler(CommandHandler("start", start))
 
-def run_bot():
-    token = os.getenv("BOT_TOKEN")  # از Environment Variables بگیر
-    if not token:
-        print("❌ BOT_TOKEN تعریف نشده! لطفاً در Render > Environment Variables اضافه کن.")
-        return
-    application = ApplicationBuilder().token(token).build()
-    application.add_handler(CommandHandler("start", start))
-
-    print("🚀 Bot is polling now...")
-    application.run_polling(drop_pending_updates=True)
-
-# ==============================
-#  Web Server Section
-# ==============================
-
+# -------------------
+# وب سرور
+# -------------------
 async def handle(request):
-    return web.Response(text="✅ Bot and web server running successfully on Render!")
+    return web.Response(text="وب سرور روشن است!")
 
-def run_web():
-    app = web.Application()
-    app.router.add_get("/", handle)
-    port = int(os.getenv("PORT", 10000))
-    print(f"🌐 Web server running on port {port}")
-    web.run_app(app, host="0.0.0.0", port=port)
+async def run_web():
+    runner = web.AppRunner(web.Application())
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 10000)))
+    await site.start()
+    print("وب سرور روی پورت آماده است")
 
-# ==============================
-#  Main Run
-# ==============================
+# -------------------
+# اجرای همزمان
+# -------------------
+async def main():
+    await asyncio.gather(
+        app_bot.run_polling(),
+        run_web()
+    )
 
 if __name__ == "__main__":
-    print("⚡ Starting bot and web server on Render...")
-
-    # اجرای ربات در Thread جداگانه
-    threading.Thread(target=run_bot, daemon=True).start()
-
-    # اجرای وب سرور (اصلی برای Render)
-    run_web()
+    asyncio.run(main())
