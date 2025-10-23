@@ -24,7 +24,9 @@ from telegram.ext import (
     filters,
 )
 from telegram.error import Forbidden, RetryAfter, TimedOut
+from telegram.ext import ApplicationBuilder
 
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 
 # ============================================================
 # 🔐 Configuration & Security
@@ -42,6 +44,7 @@ ADMINS = ["ktb_2", "GlobalAds_admin"]
 # ✅ Path to SQLite database
 DB_PATH = Path("bot.db")
 
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 # ============================================================
 # ⚙️ Global Variables
 # ============================================================
@@ -2380,8 +2383,7 @@ from aiohttp import web
 # -------------------------------
 async def start_bot():
     print("🚀 Bot started polling...")
-    await app.run_polling()
-
+    await application.run_polling()
 async def handle(request):
     return web.Response(text="✅ Bot is running on Render (Free Plan)")
 
