@@ -29,7 +29,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
-
+load_dotenv()  # فقط اگر فایل .env داری
+TOKEN = os.getenv("TOKEN")  # اینجا TOKEN را می‌گیریم
 # ✅ Read the bot token securely from environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
