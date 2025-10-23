@@ -25,9 +25,6 @@ from telegram.ext import (
 )
 from telegram.error import Forbidden, RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder
-
-application = ApplicationBuilder().token(BOT_TOKEN).build()
-
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
