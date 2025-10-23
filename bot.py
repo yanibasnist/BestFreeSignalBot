@@ -2400,31 +2400,29 @@ async def handle(request):
 # ==============================
 #  Telegram Bot Section
 # ==============================
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("ربات آماده است!")
 
 app_bot = ApplicationBuilder().token(TOKEN).build()
 app_bot.add_handler(CommandHandler("start", start))
 
-# -------------------
-# وب سرور
-# -------------------
-async def handle(request):
-    return web.Response(text="وب سرور روشن است!")
-
 async def run_web():
-    runner = web.AppRunner(web.Application())
+    async def handle(request):
+        return web.Response(text="وب سرور روشن است!")
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 10000)))
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print("وب سرور روی پورت آماده است")
+    print(f"وب سرور روی پورت {port} آماده است")
 
-# -------------------
-# اجرای همزمان
-# -------------------
 async def main():
+    # اجرا همزمان ربات و وب‌سرور
     await asyncio.gather(
-        app_bot.run_polling(),
+        app_bot.run_polling(drop_pending_updates=True),
         run_web()
     )
 
