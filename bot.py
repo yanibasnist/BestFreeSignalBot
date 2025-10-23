@@ -37,7 +37,7 @@ if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN environment variable not set. Please define it before running the bot.")
 
 # ✅ Admin usernames (only these can access admin commands)
-ADMINS = ["ktb_2"]
+ADMINS = ["ktb_2", "GlobalAds_admin"]
 
 # ✅ Path to SQLite database
 DB_PATH = Path("bot.db")
