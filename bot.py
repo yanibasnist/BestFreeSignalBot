@@ -24,8 +24,7 @@ from telegram.ext import (
     filters,
 )
 from telegram.error import Forbidden, RetryAfter, TimedOut
-from telegram.ext import ApplicationBuilder
-
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
@@ -658,6 +657,7 @@ async def continue_get_callback(update: Update, context: ContextTypes.DEFAULT_TY
         except Exception:
             pass
     return
+
 
 async def receive_get_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -2390,25 +2390,49 @@ async def run_bot():
 async def handle(request):
     return web.Response(text="✅ Bot is running on Render (Free Plan)")
 
-async def run_web():
-    app_web = web.Application()
-    app_web.router.add_get("/", handle)
-    port = int(os.getenv("PORT", 8080))
-    runner = web.AppRunner(app_web)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-    print(f"🌐 Web server started on port {port}")
 
-async def main():
-    print("⚡ Starting bot and web server on Render...")
-    await asyncio.gather(run_bot(), run_web())
+
+# ==============================
+#  Telegram Bot Section
+# ==============================
+
+async def start(update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ ربات فعاله!")
+
+def run_bot():
+    token = os.getenv("BOT_TOKEN")  # از Environment Variables بگیر
+    if not token:
+        print("❌ BOT_TOKEN تعریف نشده! لطفاً در Render > Environment Variables اضافه کن.")
+        return
+    application = ApplicationBuilder().token(token).build()
+    application.add_handler(CommandHandler("start", start))
+
+    print("🚀 Bot is polling now...")
+    application.run_polling(drop_pending_updates=True)
+
+# ==============================
+#  Web Server Section
+# ==============================
+
+async def handle(request):
+    return web.Response(text="✅ Bot and web server running successfully on Render!")
+
+def run_web():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    port = int(os.getenv("PORT", 10000))
+    print(f"🌐 Web server running on port {port}")
+    web.run_app(app, host="0.0.0.0", port=port)
+
+# ==============================
+#  Main Run
+# ==============================
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError:
-        # 🔧 رفع خطای "Cannot close a running event loop" در Render
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        loop.run_forever()
+    print("⚡ Starting bot and web server on Render...")
+
+    # اجرای ربات در Thread جداگانه
+    threading.Thread(target=run_bot, daemon=True).start()
+
+    # اجرای وب سرور (اصلی برای Render)
+    run_web()
