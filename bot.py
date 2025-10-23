@@ -25,6 +25,7 @@ from telegram.ext import (
 )
 from telegram.error import Forbidden, RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder
+
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
@@ -2378,9 +2379,14 @@ from aiohttp import web
 # -------------------------------
 # اجرای async bot و web server
 # -------------------------------
-async def start_bot():
-    print("🚀 Bot started polling...")
-    await application.run_polling()
+async def run_bot():
+    print("🚀 Starting Telegram Bot polling...")
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    print("✅ Bot is now polling.")
+    await application.updater.idle()
+
 async def handle(request):
     return web.Response(text="✅ Bot is running on Render (Free Plan)")
 
@@ -2396,7 +2402,13 @@ async def run_web():
 
 async def main():
     print("⚡ Starting bot and web server on Render...")
-    await asyncio.gather(start_bot(), run_web())
+    await asyncio.gather(run_bot(), run_web())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except RuntimeError:
+        # 🔧 رفع خطای "Cannot close a running event loop" در Render
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
