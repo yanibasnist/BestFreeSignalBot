@@ -5,6 +5,7 @@ import logging
 import sqlite3
 from pathlib import Path
 from urllib.parse import quote_plus
+import threading
 
 from aiohttp import web
 from telegram import (
