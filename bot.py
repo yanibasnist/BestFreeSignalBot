@@ -7,6 +7,9 @@ from pathlib import Path
 from urllib.parse import quote_plus
 import threading
 
+from dotenv import load_dotenv       # <- جدا از telegram
+from aiohttp import web
+
 from aiohttp import web
 from telegram import (
     Update,
