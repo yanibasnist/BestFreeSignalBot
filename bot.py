@@ -1,28 +1,69 @@
-import asyncio
+import os
 import json
+import asyncio
 import logging
 import sqlite3
 from pathlib import Path
-from urllib.parse import quote_plus  # <--- added for URL encoding
+from urllib.parse import quote_plus
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaDocument, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
-from telegram.error import Forbidden, RetryAfter, TimedOut  # <--- NEW: import common telegram errors
+from aiohttp import web
+from telegram import (
+    Update,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    InputMediaDocument,
+    ReplyKeyboardMarkup,
+)
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    ConversationHandler,
+    ContextTypes,
+    filters,
+)
+from telegram.error import Forbidden, RetryAfter, TimedOut
 
-# Constants
-BOT_TOKEN = '8242464667:AAGetBSMJmYBARUDt6QBtm5DTVLi75gpgHs'
+
+# ============================================================
+# 🔐 Configuration & Security
+# ============================================================
+
+# ✅ Read the bot token securely from environment variables
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise ValueError("❌ BOT_TOKEN environment variable not set. Please define it before running the bot.")
+
+# ✅ Admin usernames (only these can access admin commands)
 ADMINS = ["ktb_2"]
+
+# ✅ Path to SQLite database
 DB_PATH = Path("bot.db")
 
-# Global variable to store the configured signal post id
+# ============================================================
+# ⚙️ Global Variables
+# ============================================================
+
+# Stores the configured signal post id
 SIGNAL_POST_ID = None
 
-# Conversation states for new post
+# Conversation states for new post creation
 NP_MAIN, NP_INTRO, NP_TITLE, NP_DESC, NP_CHANNELS = range(5)
 
-# Logging
-logging.basicConfig(level=logging.INFO)
+# ============================================================
+# 🧠 Logging Configuration
+# ============================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 logger = logging.getLogger(__name__)
+
+logger.info("✅ Configuration loaded successfully.")
 
 # Database setup
 def init_db():
@@ -2330,8 +2371,33 @@ async def broadcast_cancel_handler(update: Update, context: ContextTypes.DEFAULT
     context.user_data.pop("awaiting_broadcast_text", None)
 
 # ============================================================
+import os
+import asyncio
+from aiohttp import web
 
+# -------------------------------
+# اجرای async bot و web server
+# -------------------------------
+async def start_bot():
+    print("🚀 Bot started polling...")
+    await app.run_polling()
 
-# ensure script entrypoint calls main()
+async def handle(request):
+    return web.Response(text="✅ Bot is running on Render (Free Plan)")
+
+async def run_web():
+    app_web = web.Application()
+    app_web.router.add_get("/", handle)
+    port = int(os.getenv("PORT", 8080))
+    runner = web.AppRunner(app_web)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"🌐 Web server started on port {port}")
+
+async def main():
+    print("⚡ Starting bot and web server on Render...")
+    await asyncio.gather(start_bot(), run_web())
+
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
