@@ -2488,5 +2488,6 @@ async def main():
     await application.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
-    asyncio.run(main())  # استفاده از asyncio.run() به جای get_event_loop()
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())  # اجرای تابع اصلی به صورت async
     run_webserver()  # شروع وب‌سرور
