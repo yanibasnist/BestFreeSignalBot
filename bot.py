@@ -2436,4 +2436,4 @@ async def main():
     )
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    application.run_polling(drop_pending_updates=True)
