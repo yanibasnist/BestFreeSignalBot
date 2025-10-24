@@ -41,6 +41,7 @@ TOKEN = os.getenv("TOKEN")  # اینجا TOKEN را می‌گیریم
 # بارگذاری توکن ربات از متغیر محیطی
 print(Update, ContextTypes)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+PORT = int(os.getenv("PORT", 5000))  # گرفتن پورت از محیط، اگر نیست از 5000 استفاده کن
 
 if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN environment variable not set. Please define it before running the bot.")
@@ -430,6 +431,9 @@ def parse_channels_text(channels_text: str):
         out.append({"name": uname, "username": uname})
 
     return out
+
+async def start(update, context):
+    await update.message.reply_text('Hello!')
 
 
 
