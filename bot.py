@@ -20,6 +20,9 @@ from telegram.ext import (
     CallbackContext,
     Application,  # Import Application here
 )
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer  # اضافه کردن این خط
+
 from telegram import (
     Update,
     InlineKeyboardMarkup,
