@@ -18,6 +18,8 @@ from telegram.ext import (
     ConversationHandler,
     ContextTypes,
     filters,
+    Updater,
+    CallbackContext
 )
 from aiohttp import web
 from telegram import (
@@ -31,14 +33,16 @@ from telegram import (
 from telegram.error import Forbidden, RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-print(Update, ContextTypes)
-
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
+from dotenv import load_dotenv
 load_dotenv()  # فقط اگر فایل .env داری
 TOKEN = os.getenv("TOKEN")  # اینجا TOKEN را می‌گیریم
 # ✅ Read the bot token securely from environment variables
+
+# بارگذاری توکن ربات از متغیر محیطی
+print(Update, ContextTypes)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 if not BOT_TOKEN:
@@ -2423,11 +2427,21 @@ async def run_web():
     aio_app.router.add_get("/", handle)
     runner = web.AppRunner(aio_app)
     await runner.setup()
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.getenv("PORT", 5000))  # در صورت نداشتن متغیر، از 5000 استفاده کن
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
     print(f"وب سرور روی پورت {port} آماده است")
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Hello, I'm your bot!")
 
+def main():
+    updater = Updater(token)
+    dispatcher = updater.dispatcher
+    dispatcher.add_handler(CommandHandler("start", start))
+
+    # اجرای ربات روی پورت مشخص شده
+    updater.start_polling(poll_interval=3)
+    updater.idle()
 # اجرای همزمان ربات و وب سرور
 async def main():
     await asyncio.gather(
@@ -2435,5 +2449,5 @@ async def main():
         run_web()
     )
 
-if __name__ == "__main__":
-    application.run_polling(drop_pending_updates=True)
+if __name__ == '__main__':
+    main()
