@@ -2430,28 +2430,28 @@ async def run_web():
     async def handle(request):
         return web.Response(text="وب سرور روشن است!")
     aio_app = web.Application()
-    aio_app.router.add_get("/", handle)
+    async def _handle(request):
+        return web.Response(text="✅ Bot is running")
+    aio_app.router.add_get("/", _handle)
     runner = web.AppRunner(aio_app)
     await runner.setup()
-    port = int(os.getenv("PORT", 5000))  # در صورت نداشتن متغیر، از 5000 استفاده کن
+    port = int(os.getenv("PORT", 5000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"وب سرور روی پورت {port} آماده است")
-def start(update, context: CallbackContext):
-    update.message.reply_text("Hello, I'm your bot!")
+    print(f"Web server running on port {port}")
 
-def main():
-    updater = Updater(token)
-    dispatcher = updater.dispatcher
-    dispatcher.add_handler(CommandHandler("start", start))
+async def runner_main():
+    # Ensure no webhook is set (webhook mode causes getUpdates conflicts)
+    try:
+        await application.bot.delete_webhook()
+        print("Webhook removed (if existed).")
+    except Exception:
+        # best-effort; continue even if deletion fails
+        pass
 
-    # اجرای ربات روی پورت مشخص شده
-    updater.start_polling(poll_interval=3)
-    updater.idle()
-# اجرای همزمان ربات و وب سرور
-async def main():
+    # Run single polling instance (drop_pending_updates to avoid old updates) + web server
     await asyncio.gather(
-        app_bot.run_polling(drop_pending_updates=True),
+        application.run_polling(drop_pending_updates=True),
         run_web()
     )
 
