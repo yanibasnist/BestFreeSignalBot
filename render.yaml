@@ -1,6 +1,7 @@
 services:
   - type: web
-    name: telegram-bot
+    name: best-free-signal-bot
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python bot.py"  # فرمانی که برای اجرای ربات استفاده می‌کنید
+    startCommand: "python bot.py"
+    port: $PORT  # استفاده از پورت از متغیر محیطی Render
