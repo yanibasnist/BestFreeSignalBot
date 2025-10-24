@@ -2425,21 +2425,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 app_bot = ApplicationBuilder().token(TOKEN).build()
 app_bot.add_handler(CommandHandler("start", start))
 
-# وب سرور ساده
-async def run_web():
-    async def handle(request):
-        return web.Response(text="وب سرور روشن است!")
-    aio_app = web.Application()
-    async def _handle(request):
-        return web.Response(text="✅ Bot is running")
-    aio_app.router.add_get("/", _handle)
-    runner = web.AppRunner(aio_app)
-    await runner.setup()
-    port = int(os.getenv("PORT", 5000))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-    print(f"Web server running on port {port}")
-
 async def runner_main():
     # Ensure no webhook is set (webhook mode causes getUpdates conflicts)
     try:
@@ -2454,8 +2439,6 @@ async def runner_main():
         application.run_polling(drop_pending_updates=True),
         run_web()
     )
-
-
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -2473,7 +2456,29 @@ def main():
     
     application.add_handler(CommandHandler("start", start))
 
+async def start(update, context):
+    await update.message.reply_text("✅ Bot is running on Render Free Plan!")
+
+application.add_handler(CommandHandler("start", start))
+
+# --- بخش اصلی برای ربات
+def run_bot():
     application.run_polling(drop_pending_updates=True)
 
-if __name__ == '__main__':
-    main()
+# --- بخش ساخت وب‌سرور تقلبی برای Render
+class DummyServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is alive on Render Free Plan!")
+
+def run_webserver():
+    port = int(os.environ.get("PORT", 10000))  # هر پورتی، مثلاً 10000
+    server = HTTPServer(("0.0.0.0", port), DummyServer)
+    print(f"🌐 Dummy web server running on port {port}")
+    server.serve_forever()
+
+# --- اجرای همزمان ربات و وب‌سرور فیک
+if __name__ == "__main__":
+    threading.Thread(target=run_bot).start()
+    run_webserver()
