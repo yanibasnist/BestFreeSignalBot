@@ -2460,8 +2460,8 @@ logger = logging.getLogger(__name__)
 bot_token = os.getenv("BOT_TOKEN")
 
 def start(update, context):
-    update.message.reply_text('Hello!')
-
+    update.message.reply_text("Hello, I'm your bot!")
+    
 def main():
     application = Application.builder().token(bot_token).build()
 
