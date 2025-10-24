@@ -2482,8 +2482,12 @@ def run_webserver():
     server = HTTPServer(("0.0.0.0", port), DummyServer)
     print(f"🌐 Dummy web server running on port {port}")
     server.serve_forever()
-
 # --- اجرای همزمان ربات و وب‌سرور فیک
+async def main():
+    # اجرا کردن polling در داخل asyncio
+    await application.run_polling(drop_pending_updates=True)
+
 if __name__ == "__main__":
-    threading.Thread(target=run_bot).start()
-    run_webserver()
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())  # اجرای تابع اصلی به صورت async
+    run_webserver()  # شروع وب‌سرور
