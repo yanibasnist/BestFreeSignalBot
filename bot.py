@@ -5,15 +5,11 @@ import logging
 import sqlite3
 from pathlib import Path
 from urllib.parse import quote_plus
+import threading
 
+
+from dotenv import load_dotenv       # <- جدا از telegram
 from aiohttp import web
-from telegram import (
-    Update,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    InputMediaDocument,
-    ReplyKeyboardMarkup,
-)
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -23,15 +19,25 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-from telegram.error import Forbidden, RetryAfter, TimedOut
-from telegram.ext import ApplicationBuilder
+from aiohttp import web
+from telegram import (
+    Update,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    InputMediaDocument,
+    ReplyKeyboardMarkup,
+)
 
-application = ApplicationBuilder().token(BOT_TOKEN).build()
+from telegram.error import Forbidden, RetryAfter, TimedOut
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+print(Update, ContextTypes)
 
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
-
+load_dotenv()  # فقط اگر فایل .env داری
+TOKEN = os.getenv("TOKEN")  # اینجا TOKEN را می‌گیریم
 # ✅ Read the bot token securely from environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -660,6 +666,7 @@ async def continue_get_callback(update: Update, context: ContextTypes.DEFAULT_TY
         except Exception:
             pass
     return
+
 
 async def receive_get_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -2381,25 +2388,52 @@ from aiohttp import web
 # -------------------------------
 # اجرای async bot و web server
 # -------------------------------
-async def start_bot():
-    print("🚀 Bot started polling...")
-    await application.run_polling()
+async def run_bot():
+    print("🚀 Starting Telegram Bot polling...")
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    print("✅ Bot is now polling.")
+    await application.updater.idle()
+
 async def handle(request):
     return web.Response(text="✅ Bot is running on Render (Free Plan)")
 
+
+
+# ==============================
+#  Telegram Bot Section
+# ==============================
+# -----------------------
+# ربات تلگرام
+# -----------------------
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ربات آماده است!")
+
+# ساخت ربات
+app_bot = ApplicationBuilder().token(TOKEN).build()
+app_bot.add_handler(CommandHandler("start", start))
+
+# وب سرور ساده
 async def run_web():
-    app_web = web.Application()
-    app_web.router.add_get("/", handle)
-    port = int(os.getenv("PORT", 8080))
-    runner = web.AppRunner(app_web)
+    async def handle(request):
+        return web.Response(text="وب سرور روشن است!")
+    aio_app = web.Application()
+    aio_app.router.add_get("/", handle)
+    runner = web.AppRunner(aio_app)
     await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"🌐 Web server started on port {port}")
+    print(f"وب سرور روی پورت {port} آماده است")
 
+# اجرای همزمان ربات و وب سرور
 async def main():
-    print("⚡ Starting bot and web server on Render...")
-    await asyncio.gather(start_bot(), run_web())
+    await asyncio.gather(
+        app_bot.run_polling(drop_pending_updates=True),
+        run_web()
+    )
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    application.run_polling(drop_pending_updates=True)
