@@ -78,7 +78,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 logger.info("✅ Configuration loaded successfully.")
-
+async def start(update, context):
+    logger.info("Received /start command")  # لاگ برای بررسی اینکه دستور /start دریافت شده است
+    await update.message.reply_text("✅ Hello! I'm your bot. How can I help you?")
 # Database setup
 def init_db():
     conn = sqlite3.connect(DB_PATH)
