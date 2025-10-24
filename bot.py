@@ -6,9 +6,7 @@ import sqlite3
 from pathlib import Path
 from urllib.parse import quote_plus
 import threading
-
-
-from dotenv import load_dotenv       # <- جدا از telegram
+from dotenv import load_dotenv
 from aiohttp import web
 from telegram.ext import (
     ApplicationBuilder,
@@ -19,9 +17,9 @@ from telegram.ext import (
     ContextTypes,
     filters,
     Updater,
-    CallbackContext
+    CallbackContext,
+    Application,  # Import Application here
 )
-from aiohttp import web
 from telegram import (
     Update,
     InlineKeyboardMarkup,
@@ -36,7 +34,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 # ============================================================
 # 🔐 Configuration & Security
 # ============================================================
-from dotenv import load_dotenv
 load_dotenv()  # فقط اگر فایل .env داری
 TOKEN = os.getenv("TOKEN")  # اینجا TOKEN را می‌گیریم
 # ✅ Read the bot token securely from environment variables
@@ -1680,6 +1677,7 @@ async def menu_callback(update, context):
 
             # گزارش نهایی
             report = (
+               (
                 f"✅ گزارش نهایی:\n\n"
                 f"📨 ارسال موفق: {sent}\n"
                 f"🚫 ناموفق: {failed}\n"
@@ -2370,7 +2368,12 @@ async def broadcast_confirm_handler(update: Update, context: ContextTypes.DEFAUL
 
         await asyncio.sleep(0.05)
 
-    report = f"✅ گزارش نهایی:\n\n📨 موفق: {success}\n🚫 ناموفق: {failed}\n👥 کل کاربران: {total}"
+    report = (
+        f"✅ گزارش نهایی:\n\n"
+        f"📨 موفق: {success}\n"
+        f"🚫 ناموفق: {failed}\n"
+        f"👥 کل کاربران: {total}"
+    )
     await context.bot.send_message(chat_id=query.from_user.id, text=report)
     context.user_data.pop("broadcast_message", None)
 
@@ -2431,7 +2434,7 @@ async def run_web():
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
     print(f"وب سرور روی پورت {port} آماده است")
-def start(update: Update, context: CallbackContext):
+def start(update, context: CallbackContext):
     update.message.reply_text("Hello, I'm your bot!")
 
 def main():
