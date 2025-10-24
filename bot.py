@@ -1677,7 +1677,6 @@ async def menu_callback(update, context):
 
             # گزارش نهایی
             report = (
-               (
                 f"✅ گزارش نهایی:\n\n"
                 f"📨 ارسال موفق: {sent}\n"
                 f"🚫 ناموفق: {failed}\n"
